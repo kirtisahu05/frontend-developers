@@ -1,6 +1,8 @@
 <template>
-  <button-full @click.native="addToCart(product)" :disabled="isProductDisabled" data-testid="addToCart">
-    {{ $t('Add to cart') }}
+  <button-full class="btn-spinner" @click.native="addToCart(product)" :disabled="isProductDisabled" data-testid="addToCart">
+    <span>{{ addButtonText }}
+      <spinner v-if="isProductDisabled" />
+    </span>
   </button-full>
 </template>
 
@@ -9,11 +11,12 @@ import { formatProductMessages } from '@vue-storefront/core/filters/product-mess
 import { notifications } from '@vue-storefront/core/modules/cart/helpers'
 import focusClean from 'theme/components/theme/directives/focusClean'
 import ButtonFull from 'theme/components/theme/ButtonFull.vue'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
+import Spinner from 'theme/components/core/Spinner'
 
 export default {
   directives: { focusClean },
-  components: { ButtonFull },
+  components: { ButtonFull, Spinner },
   props: {
     product: {
       required: true,
@@ -24,6 +27,11 @@ export default {
       default: false
     }
   },
+  data () {
+    return {
+      isAdded: false
+    }
+  },
   methods: {
     onAfterRemovedVariant () {
       this.$forceUpdate()
@@ -31,16 +39,18 @@ export default {
     async addToCart (product) {
       try {
         const diffLog = await this.$store.dispatch('cart/addItem', { productToAdd: product })
-        diffLog.clientNotifications.forEach(notificationData => {
-          this.notifyUser(notificationData)
-        })
+        this.isAdded = true;
+        this.openMicrocart();
       } catch (message) {
         this.notifyUser(notifications.createNotification({ type: 'error', message }))
       }
     },
     notifyUser (notificationData) {
       this.$store.dispatch('notification/spawnNotification', notificationData, { root: true })
-    }
+    },
+    ...mapActions({
+      openMicrocart: 'ui/toggleMicrocart'
+    })
   },
   computed: {
     ...mapGetters({
@@ -48,6 +58,9 @@ export default {
     }),
     isProductDisabled () {
       return this.disabled || formatProductMessages(this.product.errors) !== '' || this.isAddingToCart
+    },
+    addButtonText () {
+      return this.isAdded ? 'Added' : 'Add to cart';
     }
   },
   beforeMount () {
@@ -58,3 +71,12 @@ export default {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.btn-spinner {
+  background-color: black;
+  span {
+    display: inline-flex !important;
+  }
+}
+</style>
