@@ -1,6 +1,7 @@
 <template>
   <div class="select-wrapper relative">
     <select
+      v-if="typeof options === 'string'"
       :name="name"
       :class="{
         'cl-tertiary' : options.length === 0,
@@ -20,6 +21,30 @@
         v-bind="{selected: option.value === selected}"
       >
         {{ option.label }}
+      </option>
+    </select>
+
+    <select
+      v-else
+      :name="name"
+      :class="{
+        'cl-tertiary' : options.length === 0,
+        'empty': !selected
+      }"
+      :autocomplete="autocomplete"
+      @focus="$emit('focus')"
+      @blur="$emit('blur')"
+      @change="$emit('change', $event.target.value)"
+      @input="$emit('input', $event.target.value)"
+    >
+      <option disabled selected value v-if="!selected" />
+      <option
+        v-for="option in options"
+        :key="option"
+        :value="option"
+        v-bind="{selected: option === selected}"
+      >
+        {{ option }}
       </option>
     </select>
     <label>{{ placeholder }}</label>
@@ -53,7 +78,7 @@ export default {
       default: () => []
     },
     selected: {
-      type: String,
+      type: [Number, String],
       required: false,
       default: ''
     },

@@ -1,6 +1,7 @@
 import { Store } from 'vuex'
 import RootState from '@vue-storefront/core/types/RootState'
 import Vue from 'vue'
+import VueMq from 'vue-mq'
 import { isServer } from '@vue-storefront/core/helpers'
 import EventBus from '@vue-storefront/core/compatibility/plugins/event-bus'
 import i18n from '@vue-storefront/i18n'
@@ -71,6 +72,15 @@ const createApp = async (ssrContext, config, storeCode = null): Promise<{app: Vu
       ssrAppId: 1
     })
     Vue.use(VueObserveVisibility)
+
+    Vue.use(VueMq, {
+      breakpoints: {
+        mobile: 450,
+        tablet: 900,
+        laptop: 1250,
+        desktop: Infinity
+      }
+    })
 
     Object.keys(corePlugins).forEach(key => {
       Vue.use(corePlugins[key])

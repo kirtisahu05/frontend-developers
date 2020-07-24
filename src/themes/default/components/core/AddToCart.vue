@@ -29,6 +29,7 @@ export default {
       this.$forceUpdate()
     },
     async addToCart (product) {
+      if (!this.validateColor(product)) return;
       try {
         const diffLog = await this.$store.dispatch('cart/addItem', { productToAdd: product })
         diffLog.clientNotifications.forEach(notificationData => {
@@ -37,6 +38,13 @@ export default {
       } catch (message) {
         this.notifyUser(notifications.createNotification({ type: 'error', message }))
       }
+    },
+    validateColor (product) {
+      if (!!product.color === false) {
+        const message = 'Please select a product variant you want to buy';
+        this.notifyUser(notifications.createNotification({ type: 'error', message }));
+      }
+      return !!product.color;
     },
     notifyUser (notificationData) {
       this.$store.dispatch('notification/spawnNotification', notificationData, { root: true })

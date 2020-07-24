@@ -107,9 +107,9 @@
               v-else-if="getCurrentProduct.custom_options && getCurrentProduct.custom_options.length > 0"
               :product="getCurrentProduct"
             />
-            <product-quantity
+            <product-quantity-mobile
               class="row m0 mb35"
-              v-if="getCurrentProduct.type_id !== 'grouped' && getCurrentProduct.type_id !== 'bundle'"
+              v-if="$mq === 'mobile' && getCurrentProduct.type_id !== 'grouped' && getCurrentProduct.type_id !== 'bundle'"
               v-model="getCurrentProduct.qty"
               :max-quantity="maxQuantity"
               :loading="isStockInfoLoading"
@@ -118,11 +118,23 @@
               :check-max-quantity="manageQuantity"
               @error="handleQuantityError"
             />
+            <product-quantity
+              class="row m0 mb35"
+              v-if="$mq !== 'mobile' && getCurrentProduct.type_id !== 'grouped' && getCurrentProduct.type_id !== 'bundle'"
+              v-model="getCurrentProduct.qty"
+              :max-quantity="maxQuantity"
+              :loading="isStockInfoLoading"
+              :is-simple-or-configurable="isSimpleOrConfigurable"
+              :show-quantity="manageQuantity"
+              :check-max-quantity="manageQuantity"
+              @error="handleQuantityError"
+            />
+            <span v-if="$mq !== 'mobile'">{{ $mq }}</span>
             <div class="row m0">
               <add-to-cart
                 :product="getCurrentProduct"
                 :disabled="isAddToCartDisabled"
-                class="col-xs-12 col-sm-4 col-md-6"
+                class="add-to-cart col-xs-12 col-sm-4 col-md-6"
               />
             </div>
             <div class="row py40 add-to-buttons">
@@ -196,6 +208,7 @@ import SizeSelector from 'theme/components/core/SizeSelector.vue'
 import Breadcrumbs from 'theme/components/core/Breadcrumbs.vue'
 import ProductAttribute from 'theme/components/core/ProductAttribute.vue'
 import ProductQuantity from 'theme/components/core/ProductQuantity.vue'
+import ProductQuantityMobile from 'theme/components/core/ProductQuantityMobile.vue'
 import ProductLinks from 'theme/components/core/ProductLinks.vue'
 import ProductCustomOptions from 'theme/components/core/ProductCustomOptions.vue'
 import ProductBundleOptions from 'theme/components/core/ProductBundleOptions.vue'
@@ -245,6 +258,7 @@ export default {
     SizeGuide,
     LazyHydrate,
     ProductQuantity,
+    ProductQuantityMobile,
     ProductPrice
   },
   mixins: [ProductOption],
@@ -514,6 +528,15 @@ $bg-secondary: color(secondary, $colors-background);
   @media (max-width: 767px) {
     padding: 0;
     background-color: $color-white;
+  }
+}
+
+.add-to-cart {
+  @media (max-width: 767px) {
+    position: fixed;
+    bottom: 0px;
+    right: 0px;
+    z-index: 3;
   }
 }
 

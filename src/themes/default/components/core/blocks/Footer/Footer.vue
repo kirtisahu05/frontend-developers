@@ -118,7 +118,7 @@
         </div>
       </div>
     </div>
-    <div class="container">
+    <div class="container app-details">
       <div class="row middle-xs px15 bottom-links">
         <div class="col-xs-5 col-sm-3 cl-tertiary">
           <language-switcher v-if="multistoreEnabled" />
@@ -150,7 +150,7 @@
         </div>
       </div>
     </div>
-    <back-to-top bottom="20px" right="20px" visibleoffset="200">
+    <back-to-top bottom="110px" right="20px" visibleoffset="200">
       <button type="button" class="btn-top button no-outline brdr-none cl-white bg-cl-mine-shaft :bg-cl-th-secondary py10 px10">
         <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd">
           <path d="M23.245 20l-11.245-14.374-11.219 14.374-.781-.619 12-15.381 12 15.391-.755.609z" fill="white" />
@@ -282,6 +282,13 @@ $color-secondary: color(secondary);
 
   .footer-links {
     padding-bottom: 30px;
+  }
+}
+.app-details {
+  @media (max-width: 768px){
+    font-size: 12px;
+    margin-bottom: 50px;
+
   }
 }
 </style>
