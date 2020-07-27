@@ -10,6 +10,7 @@ import { formatProductLink } from '@vue-storefront/core/modules/url/helpers';
 import { Logger } from '@vue-storefront/core/lib/logger';
 import { isServer } from '@vue-storefront/core/helpers';
 import { router } from '@vue-storefront/core/app'
+import assignIn from 'lodash-es/assignIn'
 
 // Listeners moved from Product.js
 
@@ -27,7 +28,7 @@ export const filterChangedProduct = async (filterOption, store, router) => {
   const currentProductConfiguration = store.getters['product/getCurrentProductConfiguration']
   const changedConfig = Object.assign({}, currentProductConfiguration, { [filterOption.attribute_code]: filterOption })
   let searchQuery = new SearchQuery()
-  searchQuery = searchQuery.applyFilter({ key: 'sku', value: { 'eq': store.getters['product/getCurrentProduct'].parentSku } })
+  searchQuery = searchQuery.applyFilter({ key: 'sku', value: { 'eq': filterOption.parentSku || store.getters['product/getCurrentProduct'].parentSku } })
   const { items: [newProductVariant] } = await store.dispatch('product/findProducts', {
     query: searchQuery,
     size: 1,
@@ -51,8 +52,20 @@ export const filterChangedProduct = async (filterOption, store, router) => {
       selectedVariant,
       { configuration, options, product_option }
     )
-    await store.dispatch('product/setCurrent', newProductConfiguration)
-    EventBus.$emit('product-after-configure', { product: newProductConfiguration, configuration: configuration, selectedVariant: selectedVariant })
+    if (filterOption.sourceLPL) {
+      const getProducts = store.getters['homepage/getEverythingNewCollection'];
+      const updatedProducts = getProducts.map((product) => {
+        if (product.parentId === filterOption.parentId) {
+          return assignIn(product, newProductConfiguration);
+        } else {
+          return product;
+        }
+      })
+      await store.dispatch('homepage/updateNewCollection', updatedProducts)
+    } else {
+      await store.dispatch('product/setCurrent', newProductConfiguration)
+      EventBus.$emit('product-after-configure', { product: newProductConfiguration, configuration: configuration, selectedVariant: selectedVariant })
+    }
     return selectedVariant
   } else {
     store.dispatch('notification/spawnNotification', {

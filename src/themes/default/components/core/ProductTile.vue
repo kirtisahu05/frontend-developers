@@ -41,22 +41,47 @@
       <p class="mb0 cl-accent mt10" v-if="!onlyImage">
         {{ product.name | htmlDecode }}
       </p>
-
-      <span
-        class="price-original mr5 lh30 cl-secondary"
-        v-if="product.special_price && parseFloat(product.original_price_incl_tax) > 0 && !onlyImage"
-      >{{ product.original_price_incl_tax | price(storeView) }}</span>
-
-      <span
-        class="price-special lh30 cl-accent weight-700"
-        v-if="product.special_price && parseFloat(product.special_price) > 0 && !onlyImage"
-      >{{ product.price_incl_tax | price(storeView) }}</span>
-
-      <span
-        class="lh30 cl-secondary"
-        v-if="!product.special_price && parseFloat(product.price_incl_tax) > 0 && !onlyImage"
-      >{{ product.price_incl_tax | price(storeView) }}</span>
     </router-link>
+
+    <span
+      class="price-original mr5 lh30 cl-secondary"
+      v-if="product.special_price && parseFloat(product.original_price_incl_tax) > 0 && !onlyImage"
+    >{{ product.original_price_incl_tax | price(storeView) }}</span>
+
+    <span
+      class="price-special lh30 cl-accent weight-700"
+      v-if="product.special_price && parseFloat(product.special_price) > 0 && !onlyImage"
+    >{{ product.price_incl_tax | price(storeView) }}</span>
+
+    <span
+      class="lh30 cl-secondary"
+      v-if="!product.special_price && parseFloat(product.price_incl_tax) > 0 && !onlyImage"
+    >{{ product.price_incl_tax | price(storeView) }}</span>
+
+    <span>
+      <div class="cl-primary variants" v-if="product.type_id =='configurable'">
+        <div
+          class="error"
+          v-if="product.errors && Object.keys(product.errors).length > 0"
+        >
+          {{ product.errors | formatProductMessages }}
+        </div>
+        <div class="h5" v-for="option in getProductOptions" :key="option.id">
+          <div class="row top-xs m0 pt15 pb40 variants-wrapper">
+            <div v-if="option.label == 'Color'">
+              <color-selector
+                v-for="value in option.values"
+                :key="value.value_index"
+                :variant="value"
+                :selected-filters="getSelectedFilters"
+                @change="changeFilter"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </span>
+
   </div>
 </template>
 
@@ -70,13 +95,17 @@ import AddToCompare from 'theme/components/core/blocks/Compare/AddToCompare'
 import { IsOnWishlist } from '@vue-storefront/core/modules/wishlist/components/IsOnWishlist'
 import { IsOnCompare } from '@vue-storefront/core/modules/compare/components/IsOnCompare'
 import { currentStoreView } from '@vue-storefront/core/lib/multistore'
+import ColorSelector from 'theme/components/core/ColorSelector.vue'
+import { getSelectedFiltersByProduct } from '@vue-storefront/core/modules/catalog/helpers/filters'
+import { filterChangedProduct } from '@vue-storefront/core/modules/catalog/events'
 
 export default {
   mixins: [ProductTile, IsOnWishlist, IsOnCompare],
   components: {
     ProductImage,
     AddToWishlist,
-    AddToCompare
+    AddToCompare,
+    ColorSelector
   },
   props: {
     labelsActive: {
@@ -100,6 +129,19 @@ export default {
     },
     storeView () {
       return currentStoreView()
+    },
+    getProductOptions () {
+      if (
+        this.product.errors &&
+        Object.keys(this.product.errors).length &&
+        Object.keys(this.product.configurable_options).length
+      ) {
+        return []
+      }
+      return this.product.configurable_options
+    },
+    getSelectedFilters () {
+      return getSelectedFiltersByProduct(this.product, { })
     }
   },
   methods: {
@@ -128,6 +170,17 @@ export default {
           rootStore.dispatch('stock/list', { skus: skus }) // store it in the cache
         }
       }
+    },
+    async changeFilter (variant) {
+      const selectedConfiguration = Object.assign({
+        id: variant.value_index,
+        label: variant.label,
+        type: 'color',
+        attribute_code: 'color',
+        parentSku: this.product.parentSku,
+        parentId: this.product.parentId,
+        sourceLPL: true });
+      await filterChangedProduct(selectedConfiguration, this.$store, this.$router)
     }
   },
   beforeMount () {

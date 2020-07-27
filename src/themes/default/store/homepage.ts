@@ -34,6 +34,9 @@ export const homepageStore = {
       }, { root: true })
 
       commit('SET_BESTSELLERS', items)
+    },
+    async updateNewCollection ({ commit, dispatch }, updateNewCollection) {
+      commit('SET_NEW_COLLECTION', updateNewCollection)
     }
   },
   mutations: {
